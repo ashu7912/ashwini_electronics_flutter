@@ -9,12 +9,13 @@ import 'package:ashwini_electronics/components/logout_button.dart';
 import 'package:ashwini_electronics/components/rounded_textIconBox.dart';
 import 'package:ashwini_electronics/components/card_components/product_item.dart';
 import 'package:ashwini_electronics/components/blank_list_message.dart';
+import 'package:ashwini_electronics/components/dialog_alert.dart';
+import 'package:ashwini_electronics/components/primary_button.dart';
 
 import 'package:ashwini_electronics/services/api_service.dart';
 import 'package:ashwini_electronics/services/shared_servicec.dart';
 import 'package:ashwini_electronics/models/product_model.dart';
 import 'package:ashwini_electronics/functions/validation_functions.dart';
-import 'package:ashwini_electronics/components/dialog_alert.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -32,7 +33,6 @@ class _HomePageState extends State<HomePage> {
   List<ProductModel>? _filteredProducts = [];
   String queryParam = '';
 
-  final Map<String, dynamic> _myMap = {};
 
   // void getProductData() async {
   //   APIService apiServiceModal = APIService();
@@ -107,7 +107,7 @@ class _HomePageState extends State<HomePage> {
   void deleteProduct(ProductModel model) {
     APIService.deleteProduct(model).then((response) {
       String message = response!.message ?? '';
-      if (response!.status!!) {
+      if (response.status!) {
         setState(() {
           showSnackBar(context, message, kDangerColor);
           Navigator.pop(context);
@@ -123,7 +123,7 @@ class _HomePageState extends State<HomePage> {
   String? formatDate(ProductModel item) {
     final DateFormat formatter = DateFormat('dd/MM/yyyy');
     // print(item!.updatedAt!);
-    final String formatted = formatter.format(DateTime.parse(item!.createdAt!));
+    final String formatted = formatter.format(DateTime.parse(item.createdAt!));
     return formatted;
   }
 
@@ -137,65 +137,121 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget productList() {
-    return SingleChildScrollView(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 10, right: 10, bottom: 10),
-            child: Padding(
-              padding: const EdgeInsets.only(top: 12.0),
-              child: RoundedTextIconInput(
-                inputName: "name",
-                placeholder: "Search",
-                borderRadius: kInputBorderRadius,
-                borderColor: kPrimary01,
-                icon: Icons.search,
-                onValidateVal: (onValidateVal) {
-                  return null;
-                },
-                onSavedVal: (onValidateVal) {
-                  print(onValidateVal);
-                },
-                onChangeValue: (changeValue) => {
-                  setState(() {
-                    searchString = changeValue ?? "";
-                    // searchProducts();
-                  })
-                },
-              ),
+    double height = MediaQuery.of(context).size.height - 150;
+    return Column(
+      children: [
+
+        SizedBox(
+          height: height,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Padding(
+                  padding:
+                      const EdgeInsets.only(left: 10, right: 10, bottom: 10),
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 12.0),
+                    child: RoundedTextIconInput(
+                      inputName: "name",
+                      placeholder: "Search",
+                      borderRadius: kInputBorderRadius,
+                      borderColor: kPrimary01,
+                      icon: Icons.search,
+                      onValidateVal: (onValidateVal) {
+                        return null;
+                      },
+                      onSavedVal: (onValidateVal) {
+                        print(onValidateVal);
+                      },
+                      onChangeValue: (changeValue) => {
+                        setState(() {
+                          searchString = changeValue ?? "";
+                          // searchProducts();
+                        })
+                      },
+                    ),
+                  ),
+                ),
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const ClampingScrollPhysics(),
+                  scrollDirection: Axis.vertical,
+                  itemCount: _filteredProducts!.length,
+                  itemBuilder: (context, index) {
+                    return _filteredProducts![index]
+                            .title!
+                            .toLowerCase()
+                            .contains(searchString.toLowerCase())
+                        ? ProductItem(
+                            model: _filteredProducts![index],
+                            updatedDate: formatDate(_filteredProducts![index]),
+                            onDelete: (ProductModel model) {
+                              customDialogAlert(
+                                context,
+                                kDeleteMessage(_filteredProducts![index].title),
+                                'Ok',
+                                () {
+                                  deleteProduct(model);
+                                },
+                              );
+                            },
+                          )
+                        : Container();
+                  },
+                )
+              ],
             ),
           ),
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const ClampingScrollPhysics(),
-            scrollDirection: Axis.vertical,
-            itemCount: _filteredProducts!.length,
-            itemBuilder: (context, index) {
-              return _filteredProducts![index]
-                      .title!
-                      .toLowerCase()
-                      .contains(searchString.toLowerCase())
-                  ? ProductItem(
-                      model: _filteredProducts![index],
-                      updatedDate: formatDate(_filteredProducts![index]),
-                      onDelete: (ProductModel model) {
-                        customDialogAlert(
-                          context,
-                          kDeleteMessage(_filteredProducts![index].title),
-                          'Ok',
-                          () {
-                            deleteProduct(model);
-                          },
-                        );
-                      },
-                    )
-                  : Container();
-            },
-          )
-        ],
-      ),
+        ),
+        Expanded(
+          child: Row(
+            children: [
+              Expanded(
+                child: Center(
+                  child: RichText(
+                    text: TextSpan(
+                      style: kSecondaryTextStyle,
+                      children: <TextSpan>[
+                        const TextSpan(text: 'Total products : '),
+                        TextSpan(
+                          text: '${_filteredProducts!.length}',
+                          style: kCapsBoldTextStyle,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: PrimaryButton(
+                  buttonTitle: 'Add',
+                  onPress: () {
+                    Navigator.pushNamed(context, kAddProductRoute);
+                  },
+                ),
+              ),
+
+              // Padding(
+              //   padding: const EdgeInsets.symmetric(horizontal: 10),
+              //   child: RawMaterialButton(
+              //     elevation: 0.3,
+              //     child: Icon(
+              //       Icons.add,
+              //       color: kWhiteColor,
+              //     ),
+              //     onPressed: () {},
+              //     constraints: BoxConstraints.tightFor(width: 40, height: 40),
+              //     shape: CircleBorder(),
+              //     fillColor: kPrimary01,
+              //   ),
+              // ),
+            ],
+          ),
+        )
+      ],
     );
   }
 
@@ -221,6 +277,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
           title: Row(
             children: [
@@ -292,15 +349,15 @@ class _HomePageState extends State<HomePage> {
                 },
               ),
             ),
-            IconButton(
-              icon: const Icon(Icons.add_box),
-              // tooltip: 'Show Snackbar',
-              onPressed: () {
-                Navigator.pushNamed(context, kAddProductRoute);
-                // ScaffoldMessenger.of(context).showSnackBar(
-                //     const SnackBar(content: Text('Please add Logout here !')));
-              },
-            ),
+            // IconButton(
+            //   icon: const Icon(Icons.add_box),
+            //   // tooltip: 'Show Snackbar',
+            //   onPressed: () {
+            //     Navigator.pushNamed(context, kAddProductRoute);
+            //     // ScaffoldMessenger.of(context).showSnackBar(
+            //     //     const SnackBar(content: Text('Please add Logout here !')));
+            //   },
+            // ),
             const LogoutButton()
           ]),
       backgroundColor: kAppBgColor,

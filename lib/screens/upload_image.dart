@@ -31,7 +31,7 @@ class _AddUploadImageState extends State<AddUploadImage> {
     setState(() {
       isAPICallProcess = true;
     });
-    APIService.uploadProductImage(productModel!.id!!, productImage)
+    APIService.uploadProductImage(productModel.id!, productImage)
         .then((response) {
       clearImageCache(() {
         setState(() {
@@ -40,11 +40,15 @@ class _AddUploadImageState extends State<AddUploadImage> {
       });
       if (response) {
         showSnackBar(context, 'Image uploaded!', kSuccessColor);
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          kHomeRoute,
-          (route) => false,
-        );
+        setState(() {
+          isAPICallProcess = false;
+          isImageSelected = false;
+        });
+        // Navigator.pushNamedAndRemoveUntil(
+        //   context,
+        //   kHomeRoute,
+        //   (route) => false,
+        // );
       } else {
         customDialogAlert(
           context,
@@ -69,18 +73,22 @@ class _AddUploadImageState extends State<AddUploadImage> {
     });
     APIService.deleteProductImage(productModel).then((response) {
       String message = response!.message ?? '';
-      if (response!.status!!) {
+      if (response.status!) {
         clearImageCache(() {
           setState(() {
             isAPICallProcess = false;
           });
         });
         showSnackBar(context, message, kSuccessColor);
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          kHomeRoute,
-          (route) => false,
-        );
+        setState(() {
+          isAPICallProcess = false;
+          isImageSelected = false;
+        });
+        // Navigator.pushNamedAndRemoveUntil(
+        //   context,
+        //   kHomeRoute,
+        //   (route) => false,
+        // );
       } else {
         showSnackBar(context, kWentWrongMessage, kDangerColor);
       }
@@ -159,7 +167,7 @@ class _AddUploadImageState extends State<AddUploadImage> {
     // File? _croppedImage;
     ImagePicker picker = ImagePicker();
 
-    return (productModel!.id != null)
+    return (productModel.id != null)
         ? Column(
             // mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
@@ -174,7 +182,7 @@ class _AddUploadImageState extends State<AddUploadImage> {
                   : CachedNetworkImage(
                       key: UniqueKey(),
                       imageUrl:
-                          '${Customconfig.apiURL}/products/${productModel!.id}/image',
+                          '${Customconfig.apiURL}/products/${productModel.id}/image',
                       // width: MediaQuery.of(context).size.width - 40,
                       // fit: BoxFit.contain,
 

@@ -65,6 +65,11 @@ const kCapsBoldTextStyle = TextStyle(
   color: kPrimary01,
 );
 
+const kSecMediumTextStyle = TextStyle(
+  fontSize: kFont18,
+  color: kTextSecondary,
+);
+
 const kPrimaryLinkStyle = TextStyle(
     color: kPrimary01,
     decoration: TextDecoration.underline

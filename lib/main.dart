@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (context) => EventService(),
       child: MaterialApp(
-        title: 'Flutter Demo',
+        title: 'Ashwini Electronics',
         initialRoute: 'splash_screen',
         routes: {
           'splash_screen': (context) => SplashScreen(isLoggedIn: checkIfLoggedIn),
